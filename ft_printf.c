@@ -1,33 +1,37 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minitalk.h                                         :+:      :+:    :+:   */
+/*   ft_printf.c                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/06 21:30:07 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/07 08:12:58 by miokrako         ###   ########.fr       */
+/*   Created: 2025/05/15 14:01:51 by miokrako          #+#    #+#             */
+/*   Updated: 2025/08/07 08:12:54 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINITALK_H
-# define MINITALK_H
+#include "ft_printf.h"
 
-# include <signal.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-
-typedef struct s_receive
+int	ft_printf(const char *format, ...)
 {
-    char    *message;
-    size_t  bit_count;
-    char    current_char;
-    __pid_t   client_pid;
-}   t_receive;
+	int	i;
+	int	count;
 
-int ft_atoi(char const *str);
-size_t	ft_strlen(const char *str);
-
-#endif
+	i = 0;
+	count = 0;
+	va_list(args);
+	va_start(args, format);
+	while (format[i])
+	{
+		if (format[i] == '%')
+		{
+			count += ft_check(format[i + 1], args);
+			i = i + 1;
+		}
+		else
+			count += write(1, &format[i], 1);
+		i++;
+	}
+	va_end(args);
+	return (count);
+}

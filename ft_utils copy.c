@@ -1,33 +1,41 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minitalk.h                                         :+:      :+:    :+:   */
+/*   ft_utils copy.c                                    :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/06 21:30:07 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/07 08:12:58 by miokrako         ###   ########.fr       */
+/*   Created: 2025/05/15 14:01:55 by miokrako          #+#    #+#             */
+/*   Updated: 2025/08/07 08:12:55 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINITALK_H
-# define MINITALK_H
+#include "ft_printf.h"
 
-# include <signal.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-
-typedef struct s_receive
+void	ft_putchar(char c)
 {
-    char    *message;
-    size_t  bit_count;
-    char    current_char;
-    __pid_t   client_pid;
-}   t_receive;
+	write(1, &c, 1);
+}
 
-int ft_atoi(char const *str);
-size_t	ft_strlen(const char *str);
+int	ft_putstr(char *str)
+{
+	int	i;
 
-#endif
+	i = 0;
+	while (str[i])
+	{
+		write(1, &str[i], 1);
+		i++;
+	}
+	return (i);
+}
+
+size_t	ft_stlen(const char *str)
+{
+	size_t	i;
+
+	i = 0;
+	while (str[i])
+		i++;
+	return (i);
+}

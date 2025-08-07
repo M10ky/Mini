@@ -1,33 +1,34 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minitalk.h                                         :+:      :+:    :+:   */
+/*   ft_print_unsigned.c                                :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/06 21:30:07 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/07 08:12:58 by miokrako         ###   ########.fr       */
+/*   Created: 2025/05/15 14:01:48 by miokrako          #+#    #+#             */
+/*   Updated: 2025/08/07 08:12:52 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINITALK_H
-# define MINITALK_H
+#include "ft_printf.h"
 
-# include <signal.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-
-typedef struct s_receive
+static int	ft_putchr(char c)
 {
-    char    *message;
-    size_t  bit_count;
-    char    current_char;
-    __pid_t   client_pid;
-}   t_receive;
+	return (write(1, &c, 1));
+}
 
-int ft_atoi(char const *str);
-size_t	ft_strlen(const char *str);
+static int	ft_putnbr_unsigned(unsigned int n)
+{
+	int	len;
 
-#endif
+	len = 0;
+	if (n >= 10)
+		len += ft_putnbr_unsigned(n / 10);
+	len += ft_putchr((n % 10) + '0');
+	return (len);
+}
+
+int	ft_print_unsigned(unsigned int n)
+{
+	return (ft_putnbr_unsigned(n));
+}

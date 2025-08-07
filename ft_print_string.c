@@ -1,33 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   minitalk.h                                         :+:      :+:    :+:   */
+/*   ft_print_string.c                                  :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/06 21:30:07 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/07 08:12:58 by miokrako         ###   ########.fr       */
+/*   Created: 2025/05/15 14:01:45 by miokrako          #+#    #+#             */
+/*   Updated: 2025/08/07 08:12:51 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef MINITALK_H
-# define MINITALK_H
+#include "ft_printf.h"
 
-# include <signal.h>
-# include <stdio.h>
-# include <stdlib.h>
-# include <unistd.h>
-# include <string.h>
-
-typedef struct s_receive
+int	ft_print_string(char *str)
 {
-    char    *message;
-    size_t  bit_count;
-    char    current_char;
-    __pid_t   client_pid;
-}   t_receive;
-
-int ft_atoi(char const *str);
-size_t	ft_strlen(const char *str);
-
-#endif
+	if (str == NULL)
+	{
+		ft_putstr("(null)");
+		return (6);
+	}
+	else
+		ft_putstr(str);
+	return (ft_stlen(str));
+}
