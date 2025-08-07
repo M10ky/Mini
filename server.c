@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   server.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: miokrako <miokyrakotoarivelo@gmail.com>    +#+  +:+       +#+        */
+/*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 21:29:50 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/06 22:45:33 by miokrako         ###   ########.fr       */
+/*   Updated: 2025/08/07 07:53:57 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ void append_char(char c)
     char *new_msg;
 
     if (g_data.message)
-        old_len = strlen(g_data.message);
+        old_len = ft_strlen(g_data.message);
 
     new_msg = malloc(sizeof(char) * (old_len + 2)); // +1 pour c, +1 pour \0
     if (!new_msg)

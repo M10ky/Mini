@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   minitalk.h                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: miokrako <miokyrakotoarivelo@gmail.com>    +#+  +:+       +#+        */
+/*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 21:30:07 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/06 22:45:12 by miokrako         ###   ########.fr       */
+/*   Updated: 2025/08/07 07:53:19 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,5 +26,8 @@ typedef struct s_receive
     char    current_char;
     __pid_t   client_pid;
 }   t_receive;
+
+int ft_atoi(char const *str);
+size_t	ft_strlen(const char *str);
 
 #endif

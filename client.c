@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   client.c                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: miokrako <miokyrakotoarivelo@gmail.com>    +#+  +:+       +#+        */
+/*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 21:29:33 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/06 22:45:55 by miokrako         ###   ########.fr       */
+/*   Updated: 2025/08/07 07:54:51 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,7 +50,7 @@ int main(int argc, char **argv)
         printf("Usage: %s <PID> <message>\n", argv[0]);
         return 1;
     }
-    __pid_t pid = atoi(argv[1]);
+    __pid_t pid = ft_atoi(argv[1]);
     const char *msg = argv[2];
     struct sigaction sa;
     sa.sa_handler = ack_handler;
