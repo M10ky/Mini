@@ -1,26 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   server.c                                           :+:      :+:    :+:   */
+/*   server_bonus.c                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2025/08/12 14:58:36 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/12 22:26:45 by miokrako         ###   ########.fr       */
+/*   Created: 2025/08/13 00:03:41 by miokrako          #+#    #+#             */
+/*   Updated: 2025/08/13 00:23:23 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-static void	reset_message(char **str, int *bit_count, char *c)
+t_msg	g_msg = {NULL, 0, 0, 0};
+
+static void	reset_message(void)
 {
-	if (*str != NULL)
-	{
-		free(*str);
-		*str = NULL;
-	}
-	*bit_count = 0;
-	*c = 0;
+	free(g_msg.str);
+	g_msg.str = NULL;
+	g_msg.bit_count = 0;
+	g_msg.c = 0;
 }
 
 static void	append_char(char **str, char c)
@@ -47,61 +46,44 @@ static void	append_char(char **str, char c)
 	*str = new_buf;
 }
 
-static void	process_byte(char **str, char *c, int *bit_count)
+static void	handle_signal(int sig, siginfo_t *info, void *context)
 {
-	if (*c == '\0')
-	{
-		if (*str != NULL && **str != '\0')
-			ft_printf("%s", *str);
-		reset_message(str, bit_count, c);
-	}
-	else
-		append_char(str, *c);
-	*c = 0;
-	*bit_count = 0;
-}
-
-static void	ft_handler(int sig, siginfo_t *info, void *context)
-{
-	static char		*str;
-	static int		bit_count;
-	static char		c;
-	static __pid_t	client_pid;
-
 	(void)context;
-	if (client_pid != info->si_pid)
+	if (g_msg.client_pid != info->si_pid)
 	{
-		client_pid = info->si_pid;
-		reset_message(&str, &bit_count, &c);
+		g_msg.client_pid = info->si_pid;
+		reset_message();
 	}
 	if (sig == SIGUSR2)
-		c |= (1 << bit_count);
-	bit_count++;
-	if (bit_count == 8)
-		process_byte(&str, &c, &bit_count);
+		g_msg.c |= (1 << g_msg.bit_count);
+	g_msg.bit_count++;
+	if (g_msg.bit_count == 8)
+	{
+		if (g_msg.c == '\0')
+		{
+			ft_printf("Message reçu : %s\n", g_msg.str ? g_msg.str : "");
+			kill(g_msg.client_pid, SIGUSR2);
+			reset_message();
+		}
+		else
+			append_char(g_msg.c);
+		g_msg.c = 0;
+		g_msg.bit_count = 0;
+	}
 	kill(info->si_pid, SIGUSR1);
 }
 
-int	main(int argc, char const **argv)
+int	main(void)
 {
 	struct sigaction	sa;
 
-	(void)argv;
-	if (argc >= 2)
-	{
-		write(2, "Server doesn't run with argument\n", 33);
-		exit(0);
-	}
 	ft_printf("Server PID : %d\n", getpid());
-	sa.sa_sigaction = ft_handler;
+	sa.sa_sigaction = handle_signal;
 	sa.sa_flags = SA_SIGINFO;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
-	{
-		write(2, "Sigaction Failed\n", 17);
 		return (1);
-	}
 	while (1)
 		pause();
 }

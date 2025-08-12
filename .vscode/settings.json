@@ -1,6 +1,6 @@
 {
-    "files.associations": {
-        "minitalk.h": "c",
-        "stdlib.h": "c"
-    }
+	"files.associations": {
+		"ft_printf.h": "c",
+		"string.h": "c"
+	}
 }

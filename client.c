@@ -6,107 +6,100 @@
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/06 21:29:33 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/08 13:46:20 by miokrako         ###   ########.fr       */
+/*   Updated: 2025/08/12 23:15:11 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-volatile sig_atomic_t ack = 0; // Variable globale de synchronisation
+static int	g_ack = 0;
 
-void ack_handler(int sig)
+static void	ack_handler(int sig)
 {
 	(void)sig;
-	ack = 1; // Le serveur a confirmé réception du bit
+	g_ack = 1;
 }
 
-void send_char(pid_t pid, char c)
+static void	send_char(__pid_t pid, char c)
 {
-    int i = 0;
-    while (i < 8)
-    {
-        ack = 0; // Réinitialiser l’ACK avant chaque bit
+	int	i;
+	int	attempts;
 
-        if ((c >> i) & 1)
-            kill(pid, SIGUSR2); // bit = 1
-        else
-            kill(pid, SIGUSR1); // bit = 0
-
-        int attempts = 0;
-        while (!ack)
-        {
-            // Vérifier si le serveur est toujours vivant
-            if (kill(pid, 0) == -1)
-            {
-                write(2, "\nError: Server is not responding\n", 33);
-                exit(1);
-            }
-
-            // Attente courte avant de réessayer
-            usleep(5000); // 5 ms
-
-            // Timeout après ~1 seconde
-            if (++attempts > 200)
-            {
-                write(2, "\nError: No ACK from server\n", 28);
-                exit(1);
-            }
-        }
-        i++;
-    }
+	attempts = 0;
+	i = 0;
+	while (i < 8)
+	{
+		g_ack = 0;
+		if ((c >> i) & 1)
+			kill(pid, SIGUSR2);
+		else
+			kill(pid, SIGUSR1);
+		while (!g_ack)
+		{
+			if (kill(pid, 0) == -1 || attempts > 200)
+			{
+				write(2, "\nError: Server is not responding\n", 33);
+				exit(1);
+			}
+			else
+				usleep(5000);
+			attempts++;
+		}
+		i++;
+	}
 }
 
-
-int is_numeric(const char *str)
+static int	setup_sigaction(void)
 {
-    while (*str)
-    {
-        if (*str < '0' || *str > '9')
-            return 0;
-        str++;
-    }
-    return 1;
+	struct sigaction	sa;
+
+	sa.sa_handler = ack_handler;
+	sa.sa_flags = SA_RESTART;
+	sigemptyset(&sa.sa_mask);
+	if (sigaction(SIGUSR1, &sa, NULL) == -1)
+	{
+		write(2, "Sigaction Failed\n", 17);
+		return (1);
+	}
+	return (0);
 }
 
-int main(int argc, char **argv)
+static int	validate_args(int argc, char **argv, __pid_t *pid, const char **msg)
 {
-    if (argc != 3)
-    {
-        write(2, "Usage: ./client <PID> <MESSAGE>\n", 33);
-        return 1;
-    }
+	if (argc != 3)
+	{
+		write(2, "Usage: ./client <PID(Numeric)> <MESSAGE>\n", 41);
+		return (1);
+	}
+	if (!is_numeric(argv[1]))
+	{
+		write(2, "Error: PID must be numeric\n", 27);
+		return (1);
+	}
+	*pid = ft_atoi(argv[1]);
+	if (*pid <= 1 || kill(*pid, 0) == -1)
+	{
+		write(2, "Error: Invalid PID\n", 19);
+		return (1);
+	}
+	*msg = argv[2];
+	return (0);
+}
 
-    if (!is_numeric(argv[1]))
-    {
-        write(2, "Error: PID must be numeric\n", 28);
-        return 1;
-    }
+int	main(int argc, char **argv)
+{
+	__pid_t		pid;
+	const char	*msg;
 
-    pid_t pid = atoi(argv[1]);
-    if (pid <= 1 || kill(pid, 0) == -1)
-    {
-        write(2, "Error: Invalid PID\n", 20);
-        return 1;
-    }
-
-    // Associer SIGUSR1 au handler ACK
-    struct sigaction sa;
-    sa.sa_handler = ack_handler;
-    sa.sa_flags = SA_RESTART;
-    sigemptyset(&sa.sa_mask);
-    if (sigaction(SIGUSR1, &sa, NULL) == -1)
-    {
-        perror("sigaction");
-        return 1;
-    }
-
-    const char *msg = argv[2];
-    while (*msg)
-    {
-        send_char(pid, *msg);
-        msg++;
-    }
-    send_char(pid, '\0');
-
-    return 0;
+	if (validate_args(argc, argv, &pid, &msg) != 0)
+		return (1);
+	if (setup_sigaction() != 0)
+		return (1);
+	while (*msg)
+	{
+		send_char(pid, *msg);
+		msg++;
+	}
+	send_char(pid, '\0');
+	return (0);
 }
