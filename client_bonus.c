@@ -6,23 +6,20 @@
 /*   By: miokrako <miokrako@student.42antananari    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2025/08/13 00:03:09 by miokrako          #+#    #+#             */
-/*   Updated: 2025/08/13 00:09:59 by miokrako         ###   ########.fr       */
+/*   Updated: 2025/08/13 08:25:44 by miokrako         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "minitalk.h"
 
-int	g_ack = 0;
+static int	g_ack = 0; // 0 = en attente ACK, 1 = ACK reçu, 2 = confirmation finale
 
-static void	ack_handler(int sig)
+static void	sig_handler(int sig)
 {
 	if (sig == SIGUSR1)
-		g_ack = 1;
+		g_ack = 1; // ACK normal
 	else if (sig == SIGUSR2)
-	{
-		ft_printf("\n[OK] Message reçu avec succès par le serveur\n");
-		exit(0);
-	}
+		g_ack = 2; // Confirmation finale OK
 }
 
 static void	send_char(__pid_t pid, char c)
@@ -39,43 +36,86 @@ static void	send_char(__pid_t pid, char c)
 		else
 			kill(pid, SIGUSR1);
 		attempts = 0;
-		while (!g_ack)
+		while (g_ack == 0)
 		{
-			if (kill(pid, 0) == -1)
-				exit(write(2, "Error: Server down\n", 19));
-			usleep(5000);
-			if (++attempts > 200)
+			if (kill(pid, 0) == -1 || attempts > 200)
 			{
-				write(2, "Error: No ACK\n", 14);
+				write(2, "\nError: Server is not responding\n", 33);
 				exit(1);
 			}
+			usleep(5000);
+			attempts++;
 		}
 		i++;
 	}
 }
 
-int	main(int argc, char **argv)
+static int	setup_sigaction(void)
 {
 	struct sigaction	sa;
-	__pid_t				pid;
-	char				*msg;
 
-	if (argc != 3 || !is_numeric(argv[1]))
-		return (write(2, "Usage: ./client <PID> <MESSAGE>\n", 33), 1);
-	pid = ft_atoi(argv[1]);
-	if (pid <= 1 || kill(pid, 0) == -1)
-		return (write(2, "Error: Invalid PID\n", 19), 1);
-	sa.sa_handler = ack_handler;
+	sa.sa_handler = sig_handler;
 	sa.sa_flags = SA_RESTART;
 	sigemptyset(&sa.sa_mask);
 	if (sigaction(SIGUSR1, &sa, NULL) == -1
 		|| sigaction(SIGUSR2, &sa, NULL) == -1)
-		return (write(2, "Sigaction failed\n", 17), 1);
-	msg = argv[2];
-	while (*msg)
-		send_char(pid, *msg++);
-	send_char(pid, '\0');
-	usleep(1000000);
-	ft_printf("\n[FAIL] Message non confirmé par le serveur\n");
-	return (1);
+	{
+		write(2, "Sigaction Failed\n", 17);
+		return (1);
+	}
+	return (0);
 }
+
+static int	validate_args(int argc, char **argv, __pid_t *pid, const char **msg)
+{
+	if (argc != 3)
+	{
+		write(2, "Usage: ./client <PID(Numeric)> <MESSAGE>\n", 41);
+		return (1);
+	}
+	if (!is_numeric(argv[1]))
+	{
+		write(2, "Error: PID must be numeric\n", 27);
+		return (1);
+	}
+	*pid = ft_atoi(argv[1]);
+	if (*pid <= 1 || kill(*pid, 0) == -1)
+	{
+		write(2, "Error: Invalid PID\n", 19);
+		return (1);
+	}
+	*msg = argv[2];
+	return (0);
+}
+
+int	main(int argc, char **argv)
+{
+	__pid_t		pid;
+	const char	*msg;
+	int			wait_count;
+
+	if (validate_args(argc, argv, &pid, &msg) != 0)
+		return (1);
+	if (setup_sigaction() != 0)
+		return (1);
+
+	// Si message vide, on saute l'envoi normal
+	if (*msg)
+	{
+		while (*msg)
+			send_char(pid, *msg++);
+	}
+	send_char(pid, '\0');
+
+	// Attente confirmation finale
+	wait_count = 0;
+	while (g_ack != 2 && wait_count++ < 200)
+		usleep(5000);
+	if (g_ack == 2)
+		ft_printf("\nMessage reçu avec succès ✅\n");
+	else
+		ft_printf("\nMessage mal reçu ou pas de confirmation ❌\n");
+	return (0);
+}
+
+

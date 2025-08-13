@@ -1,6 +1,5 @@
 Makefile					OK
 valg						OK
-NORM						OK
 Manala printf					OK
 Message error\n					OK
 expl justif var glob			OK
@@ -8,3 +7,5 @@ static							OK
 ./client PID ""					OK
 A la ligne ve ny Message manaraka
 BONUS valglob
+NORM
+accuse de reception ""
